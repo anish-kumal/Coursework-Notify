@@ -321,6 +321,11 @@
         updatedAtUtc = saved.UpdatedAt;
         canModifyExisting = CanModify(saved.CreatedAt);
         message = "Saved.";
+        
+        // Check if content is empty and navigate back with query parameter
+        var contentText = System.Text.RegularExpressions.Regex.Replace(saved.ContentHtml ?? "", "<.*?>", string.Empty).Trim();
+        var isEmpty = string.IsNullOrWhiteSpace(contentText);
+        Navigation.NavigateTo($"/journal?empty={(isEmpty ? "true" : "false")}");
     }
 
     private async Task DeleteAsync()

@@ -32,7 +32,7 @@
                 </div>
                 <div class="stat-card-body">
                     <p class="stat-label">Current Streak</p>
-                    <h3 class="stat-value">@currentStreak Days</h3>
+                    <h3 class="stat-value">@currentStreak </h3>
                     <p class="stat-meta">Consecutive days</p>
                 </div>
             </div>
@@ -45,7 +45,7 @@
                     </div>
                 </div>
                 <div class="stat-card-body">
-                    <p class="stat-label">Total Entries</p>
+                    <p class="stat-label">Total Journals</p>
                     <h3 class="stat-value">@totalEntries</h3>
                     <p class="stat-meta">Saved entries</p>
                 </div>
@@ -61,7 +61,7 @@
                 <div class="stat-card-body">
                     <p class="stat-label">Missed Days</p>
                     <h3 class="stat-value">@missedDays</h3>
-                    <p class="stat-meta">Since first entry</p>
+                    <p class="stat-meta">Jounral entry</p>
                 </div>
             </div>
 
@@ -74,7 +74,7 @@
                 </div>
                 <div class="stat-card-body">
                     <p class="stat-label">Longest Streak</p>
-                    <h3 class="stat-value">@longestStreak Days</h3>
+                    <h3 class="stat-value">@longestStreak </h3>
                     <p class="stat-meta">Best run</p>
                 </div>
             </div>
@@ -82,7 +82,7 @@
 
         <!-- Charts Row -->
         <div class="charts-grid">
-            <!-- Word Count Trend (last 7 entries by entry date) -->
+                <!-- Word Count Trend (last 7 journals by entry date) -->
             <div class="chart-card chart-card-wide">
                 <div class="chart-header">
                     <div>
@@ -94,7 +94,7 @@
                             }
                             else
                             {
-                                <span>You wrote @totalRecentWords words in your last @recentWordCounts.Count entries.</span>
+                                    <span>You wrote @totalRecentWords words in your last @recentWordCounts.Count journals.</span>
                             }
                         </p>
                     </div>
@@ -201,15 +201,15 @@
                 </div>
             </div>
 
-            <!-- Daily Inspiration/Quote -->
+            <!-- Inspiration/Quote -->
             <div class="quote-card">
                 <div class="quote-bg-icon">
                     <span class="material-symbols-outlined">format_quote</span>
                 </div>
                 <div class="quote-content">
-                    <p class="quote-label">Daily Inspiration</p>
+                        <p class="quote-label"> Inspiration Quote</p>
                     <blockquote class="quote-text">
-                        "Keep your face always toward the sunshine—and shadows will fall behind you."
+                        "Keep your face always toward the sunshine and shadows will fall behind you."
                     </blockquote>
                     <p class="quote-author">— Walt Whitman</p>
                 </div>

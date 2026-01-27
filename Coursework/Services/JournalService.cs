@@ -428,47 +428,49 @@ namespace Coursework.Services
             }
 
             var dateSet = new HashSet<DateTime>(dates);
+            var lastEntryDate = dates[^1];
 
-            // Current streak: consecutive days ending at the most recent entry up to today.
-            // If there is no entry today, we look back to the last day with an entry and
-            // count the consecutive run from there. Any gap breaks the streak.
+            // Current streak calculation:
+            // Rule 1: Streak must end on today's date - if latest entry is not today, streak = 0
+            // Rule 2: Must have at least 2 consecutive days (streak = consecutive days - 1)
+            // Rule 3: Count backward day-by-day from today until a gap is found
             var current = 0;
-            var cursor = day;
-
-            // Move cursor back to the most recent day that has an entry (if any).
-            while (cursor >= dates[0] && !dateSet.Contains(cursor))
+            if (lastEntryDate == day && dateSet.Contains(day))
             {
-                cursor = cursor.AddDays(-1);
-            }
+                var runLen = 0;
+                var cursor = day;
+                // Count backward day-by-day, stopping at first gap
+                while (cursor >= dates[0] && dateSet.Contains(cursor))
+                {
+                    runLen++;
+                    cursor = cursor.AddDays(-1);
+                }
 
-            // If we found at least one day with an entry, count backwards while days are consecutive.
-            while (cursor >= dates[0] && dateSet.Contains(cursor))
-            {
-                current++;
-                cursor = cursor.AddDays(-1);
+                // Streak = consecutive days - 1 (minimum 2 days needed for streak = 1)
+                current = Math.Max(0, runLen - 1);
             }
 
             // Longest streak across history.
-            var longest = 1;
+            // Uses the same "consecutive links" unit as CurrentStreakDays.
+            var longestRunLen = 1;
             var run = 1;
             for (var i = 1; i < dates.Count; i++)
             {
                 if (dates[i] == dates[i - 1].AddDays(1))
                 {
                     run++;
-                    if (run > longest) longest = run;
+                    if (run > longestRunLen) longestRunLen = run;
                 }
                 else
                 {
                     run = 1;
                 }
             }
+            var longest = Math.Max(0, longestRunLen - 1);
 
-            // Missed days: count only days since the most recent entry up to today.
-            // This means:
-            // - While you are maintaining a streak (you wrote today), missed = 0.
-            // - If you stop writing, missed counts how many days you've skipped since your last entry.
-            var lastEntryDate = dates[^1];
+            // Missed days: count days since the most recent entry up to today.
+            // - If you wrote today (maintaining streak), missed = 0
+            // - If latest entry is before today, missed = days between last entry and today
             var missed = 0;
             if (lastEntryDate < day)
             {

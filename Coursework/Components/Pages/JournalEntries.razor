@@ -147,6 +147,7 @@
     [SupplyParameterFromQuery(Name = "mood")] public int? mood { get; set; }
     [SupplyParameterFromQuery(Name = "tag")] public int? tag { get; set; }
     [SupplyParameterFromQuery(Name = "q")] public string? q { get; set; }
+    [SupplyParameterFromQuery(Name = "empty")] public string? empty { get; set; }
 
     private int pageSize = 5;
     private int? userId;
@@ -196,6 +197,12 @@
         if (userId.HasValue)
         {
             await LoadAsync();
+            
+            // Check if we just saved an entry with empty content
+            if (empty == "true")
+            {
+                message = "Okay";
+            }
         }
     }
 
