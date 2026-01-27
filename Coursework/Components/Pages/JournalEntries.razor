@@ -1,0 +1,369 @@
+@page "/journal"
+@using Coursework.Services.Models
+@using MauiApp1.Models
+@inject IJournalService JournalService
+@inject IUserService UserService
+@inject IMoodService MoodService
+@inject ITagService TagService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="journal-page">
+    <header class="journal-header">
+        <div>
+            <h1>Journal</h1>
+            <p>Write one entry per day. You can backfill past dates too.</p>
+        </div>
+        <div class="journal-actions">
+            <button class="btn-primary" type="button" @onclick="(() => OpenEditorForDate(DateTime.Today))">
+                <span class="material-symbols-outlined">edit</span>
+                Today
+            </button>
+            <button class="btn-secondary" type="button" @onclick="ExportAllToPdf" disabled="@exportingPdf">
+                <span class="material-symbols-outlined">picture_as_pdf</span>
+                @(exportingPdf ? "Exporting…" : "Export all as PDF")
+            </button>
+        </div>
+    </header>
+
+    <div class="journal-filters">
+        <div class="filter-group">
+            <label for="filter-search">Search</label>
+            <input id="filter-search" type="text" class="filter-input" placeholder="Search title or content…"
+                   @bind="filterSearch" @bind:event="oninput" @onkeydown="OnSearchKeydown" />
+        </div>
+        <div class="filter-group">
+            <label for="filter-mood">Mood</label>
+            <select id="filter-mood" class="filter-select" @bind="filterMoodIdStr">
+                <option value="">All moods</option>
+                @foreach (var m in moods)
+                {
+                    <option value="@m.MoodId">@(m.MoodName ?? $"Mood #{m.MoodId}")</option>
+                }
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-tag">Tag</label>
+            <select id="filter-tag" class="filter-select" @bind="filterTagIdStr">
+                <option value="">All tags</option>
+                @foreach (var t in tags)
+                {
+                    <option value="@t.TagId">@(t.TagName ?? $"Tag #{t.TagId}")</option>
+                }
+            </select>
+        </div>
+        <div class="filter-actions">
+            <button class="btn-primary" type="button" @onclick="ApplyFilters">Apply</button>
+            @if (HasActiveFilters)
+            {
+                <button class="btn-secondary" type="button" @onclick="ClearFilters">Clear</button>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="message">@message</div>
+    }
+
+    @if (paged == null)
+    {
+        <div class="loading">Loading…</div>
+    }
+    else if (paged.Items.Count == 0)
+    {
+        <div class="empty-state">
+            <p>@(HasActiveFilters ? "No entries match your filters." : "No entries yet.")</p>
+            @if (HasActiveFilters)
+            {
+                <button class="btn-secondary" type="button" @onclick="ClearFilters">Clear filters</button>
+            }
+            else
+            {
+                <button class="btn-primary" type="button" @onclick="(() => OpenEditorForDate(DateTime.Today))">Create today's entry</button>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="entries">
+            @foreach (var item in paged.Items)
+            {
+                <div class="entry-card" @onclick="(() => ViewDetails(item.JournalId))" style="cursor: pointer;">
+                    <div class="entry-top">
+                        <div class="entry-date">@item.EntryDate.ToString("dddd, dd MMM yyyy")</div>
+                        <div class="entry-buttons" @onclick:stopPropagation="true">
+                            <button class="icon-btn" title="Export PDF" @onclick="(() => ExportEntryToPdf(item))" disabled="@exportingPdf">
+                                <span class="material-symbols-outlined">picture_as_pdf</span>
+                            </button>
+                            @if (CanModify(item.CreatedAt))
+                            {
+                                <button class="icon-btn" title="Edit" @onclick="(() => OpenEditorForDate(item.EntryDate))">
+                                    <span class="material-symbols-outlined">edit</span>
+                                </button>
+                                <button class="icon-btn danger" title="Delete" @onclick="(() => DeleteAsync(item))">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="entry-title">@item.Title</div>
+                    @if (!string.IsNullOrWhiteSpace(item.ContentPreview))
+                    {
+                        <div class="entry-preview">@item.ContentPreview</div>
+                    }
+
+                    <div class="entry-meta">
+                        <span class="meta-chip">
+                            <span class="material-symbols-outlined">mood</span>
+                            @MoodName(item.PrimaryMoodId)
+                        </span>
+
+                        @foreach (var sid in item.SecondaryMoodIds)
+                        {
+                            <span class="meta-chip secondary">@MoodName(sid)</span>
+                        }
+
+                        @foreach (var t in TagNames(item.TagIds))
+                        {
+                            <span class="tag-chip">#@t</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="pager">
+            <button class="btn-secondary" type="button" disabled="@(!paged.HasPrevious)" @onclick="() => GoToPage(paged.Page - 1)">Previous</button>
+            <div class="pager-info">Page @paged.Page of @paged.TotalPages</div>
+            <button class="btn-secondary" type="button" disabled="@(!paged.HasNext)" @onclick="() => GoToPage(paged.Page + 1)">Next</button>
+        </div>
+    }
+</div>
+
+@code {
+    [SupplyParameterFromQuery] public int? page { get; set; }
+    [SupplyParameterFromQuery(Name = "mood")] public int? mood { get; set; }
+    [SupplyParameterFromQuery(Name = "tag")] public int? tag { get; set; }
+    [SupplyParameterFromQuery(Name = "q")] public string? q { get; set; }
+
+    private int pageSize = 5;
+    private int? userId;
+
+    private PagedResult<JournalListItem>? paged;
+
+    private List<Mood> moods = new();
+    private List<Tag> tags = new();
+
+    private Dictionary<int, string> moodNameById = new();
+    private Dictionary<int, string> tagNameById = new();
+
+    private string message = "";
+
+    private string filterSearch = "";
+    private string filterMoodIdStr = "";
+    private string filterTagIdStr = "";
+
+    private bool exportingPdf = false;
+
+    private bool HasActiveFilters =>
+        (mood.HasValue && mood.Value > 0) ||
+        (tag.HasValue && tag.Value > 0) ||
+        !string.IsNullOrWhiteSpace(q);
+
+    protected override async Task OnInitializedAsync()
+    {
+        userId = await UserService.GetSingleUserIdAsync();
+        if (userId == null)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await LoadLookupsAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        filterSearch = q ?? "";
+        filterMoodIdStr = mood.HasValue && mood.Value > 0 ? mood.Value.ToString() : "";
+        filterTagIdStr = tag.HasValue && tag.Value > 0 ? tag.Value.ToString() : "";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (userId.HasValue)
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadLookupsAsync()
+    {
+        moods = await MoodService.GetAllMoodsAsync();
+        tags = await TagService.GetAllTagsAsync();
+
+        moodNameById = moods.ToDictionary(m => m.MoodId, m => m.MoodName ?? "");
+        tagNameById = tags.ToDictionary(t => t.TagId, t => t.TagName ?? "");
+    }
+
+    private async Task LoadAsync()
+    {
+        message = "";
+        var p = page.GetValueOrDefault(1);
+        var moodId = mood.HasValue && mood.Value > 0 ? mood : null;
+        var tagId = tag.HasValue && tag.Value > 0 ? tag : null;
+        var search = string.IsNullOrWhiteSpace(q) ? null : q!.Trim();
+        paged = await JournalService.GetEntriesPageAsync(userId!.Value, p, pageSize, moodId, tagId, search);
+    }
+
+    private void ApplyFilters()
+    {
+        int? moodVal = int.TryParse(filterMoodIdStr, out var mv) && mv > 0 ? mv : null;
+        int? tagVal = int.TryParse(filterTagIdStr, out var tv) && tv > 0 ? tv : null;
+        var searchVal = string.IsNullOrWhiteSpace(filterSearch) ? null : filterSearch.Trim();
+        var query = new List<string> { "page=1" };
+        if (moodVal.HasValue) query.Add($"mood={moodVal.Value}");
+        if (tagVal.HasValue) query.Add($"tag={tagVal.Value}");
+        if (!string.IsNullOrEmpty(searchVal)) query.Add($"q={Uri.EscapeDataString(searchVal)}");
+        Navigation.NavigateTo("/journal?" + string.Join("&", query), forceLoad: false);
+    }
+
+    private void ClearFilters()
+    {
+        filterSearch = "";
+        filterMoodIdStr = "";
+        filterTagIdStr = "";
+        Navigation.NavigateTo("/journal?page=1", forceLoad: false);
+    }
+
+    private void OnSearchKeydown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ApplyFilters();
+        }
+    }
+
+    private string MoodName(int moodId)
+    {
+        return moodNameById.TryGetValue(moodId, out var name) && !string.IsNullOrWhiteSpace(name)
+            ? name
+            : $"Mood #{moodId}";
+    }
+
+    private IEnumerable<string> TagNames(IReadOnlyList<int> tagIds)
+    {
+        foreach (var id in tagIds)
+        {
+            if (tagNameById.TryGetValue(id, out var name) && !string.IsNullOrWhiteSpace(name))
+            {
+                yield return name;
+            }
+        }
+    }
+
+    private void OpenEditorForDate(DateTime date)
+    {
+        Navigation.NavigateTo($"/journal/edit?date={date:yyyy-MM-dd}");
+    }
+
+    private void ViewDetails(int journalId)
+    {
+        Navigation.NavigateTo($"/journal/details/{journalId}");
+    }
+
+    private void GoToPage(int p)
+    {
+        if (p < 1) p = 1;
+        var query = new List<string> { $"page={p}" };
+        if (mood.HasValue && mood.Value > 0) query.Add($"mood={mood.Value}");
+        if (tag.HasValue && tag.Value > 0) query.Add($"tag={tag.Value}");
+        if (!string.IsNullOrWhiteSpace(q)) query.Add($"q={Uri.EscapeDataString(q!)}");
+        Navigation.NavigateTo("/journal?" + string.Join("&", query), forceLoad: false);
+    }
+
+    private async Task DeleteAsync(JournalListItem item)
+    {
+        var ok = await JS.InvokeAsync<bool>("confirm", $"Delete the entry for {item.EntryDate:yyyy-MM-dd}?");
+        if (!ok) return;
+
+        try
+        {
+            await JournalService.DeleteEntryAsync(item.JournalId);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+        }
+    }
+
+    private async Task ExportAllToPdf()
+    {
+        if (!userId.HasValue)
+        {
+            return;
+        }
+
+        exportingPdf = true;
+        message = "";
+
+        try
+        {
+            var bytes = await JournalService.ExportAllEntriesPdfAsync(userId.Value);
+            if (bytes == null || bytes.Length == 0)
+            {
+                message = "No entries to export.";
+                return;
+            }
+
+            var base64 = Convert.ToBase64String(bytes);
+            var fileName = $"journal-entries-{DateTime.Now:yyyyMMddHHmmss}.pdf";
+            await JS.InvokeVoidAsync("downloadFileFromBytes", fileName, base64);
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+        }
+        finally
+        {
+            exportingPdf = false;
+        }
+    }
+
+    private static bool CanModify(DateTime createdAtUtc)
+    {
+        return DateTime.UtcNow - createdAtUtc <= TimeSpan.FromHours(24);
+    }
+
+    private async Task ExportEntryToPdf(JournalListItem item)
+    {
+        exportingPdf = true;
+        message = "";
+
+        try
+        {
+            var bytes = await JournalService.ExportEntryPdfAsync(item.JournalId);
+            if (bytes == null || bytes.Length == 0)
+            {
+                message = "Unable to export this entry.";
+                return;
+            }
+
+            var base64 = Convert.ToBase64String(bytes);
+            var fileName = $"journal-{item.EntryDate:yyyyMMdd}-{item.JournalId}.pdf";
+            await JS.InvokeVoidAsync("downloadFileFromBytes", fileName, base64);
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+        }
+        finally
+        {
+            exportingPdf = false;
+        }
+    }
+}
+

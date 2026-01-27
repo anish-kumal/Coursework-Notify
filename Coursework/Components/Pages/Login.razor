@@ -1,0 +1,83 @@
+@page "/"
+@layout EmptyLayout
+@using Coursework.Services
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1>Welcome Back</h1>
+            <p>Please login to continue</p>
+        </div>
+
+        <div class="login-form">
+
+
+            <div class="form-group">
+                <label for="pin">PIN</label>
+                <input type="password"
+                       id="pin"
+                       class="form-input"
+                       placeholder="Enter your 4-digit PIN"
+                       maxlength="4"
+                       @bind="pin" />
+            </div>
+
+
+            <button class="btn btn-primary" @onclick="LoginAsync">
+                Login
+            </button>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error">@errorMessage</div>
+            }
+            @if (!userExists)
+            {
+                <div class="register-link">
+                    <span>Don't have an account?</span>
+                    <a href="/register" class="link">Register here</a>
+                </div>
+            }
+            else
+            {
+                <div class="register-link">
+                    <span>Don't have an account?</span>
+                    <a href="/change-pin" class="link">Change Pin</a>
+                </div>
+            }
+
+
+        </div>
+    </div>
+</div>
+
+@code {
+    private string pin = "";
+    private string errorMessage = "";
+    private bool userExists;
+
+    protected override async Task OnInitializedAsync()
+    {
+        userExists = await UserService.UserExistsAsync();
+    }
+
+    private async Task LoginAsync()
+    {
+        errorMessage = "";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(pin, @"^\d{4}$"))
+        {
+            errorMessage = "PIN must be exactly 4 digits.";
+            return;
+        }
+        if (await UserService.ValidateLoginAsync(pin))
+        {
+            Navigation.NavigateTo("/home");
+        }
+        else
+        {
+            errorMessage = "Invalid PIN.";
+        }
+    }
+}

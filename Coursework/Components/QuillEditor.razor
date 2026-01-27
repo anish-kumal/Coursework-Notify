@@ -1,0 +1,53 @@
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
+@implements IAsyncDisposable
+
+<div id="@ElementId" class="quill-editor-host"></div>
+
+@code {
+    [Parameter] public string ElementId { get; set; } = $"quill_{Guid.NewGuid():N}";
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+
+    private bool _created;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+
+        await JS.InvokeVoidAsync("quillInterop.create", ElementId, ReadOnly);
+        _created = true;
+
+        if (!string.IsNullOrWhiteSpace(Value))
+        {
+            await JS.InvokeVoidAsync("quillInterop.setHtml", ElementId, Value);
+        }
+    }
+
+    public async Task<string> GetHtmlAsync()
+    {
+        if (!_created) return Value ?? "";
+        return await JS.InvokeAsync<string>("quillInterop.getHtml", ElementId);
+    }
+
+    public async Task SetHtmlAsync(string? html)
+    {
+        Value = html;
+        if (!_created) return;
+        await JS.InvokeVoidAsync("quillInterop.setHtml", ElementId, html ?? "");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (!_created) return;
+        try
+        {
+            await JS.InvokeVoidAsync("quillInterop.destroy", ElementId);
+        }
+        catch
+        {
+            // ignore dispose errors
+        }
+    }
+}
+

@@ -1,0 +1,202 @@
+.journal-editor-page {
+    padding: 1.25rem 0;
+}
+
+.editor-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.editor-header h1 {
+    margin: 0;
+    font-size: 1.75rem;
+}
+
+.editor-header p {
+    margin: 0.25rem 0 0 0;
+    color: var(--text-secondary);
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.btn-primary, .btn-secondary, .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    font-weight: 650;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border-color: rgba(0,0,0,0.05);
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.btn-danger {
+    background: rgba(185, 28, 28, 0.1);
+    color: #b91c1c;
+    border-color: rgba(185, 28, 28, 0.25);
+}
+
+.message {
+    margin: 0.75rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(79, 209, 197, 0.12);
+    border: 1px solid rgba(79, 209, 197, 0.25);
+}
+
+.editor-grid {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 0.9rem;
+}
+
+@media (max-width: 900px) {
+    .editor-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.panel-editor {
+    padding: 0.75rem;
+}
+
+.field {
+    margin-bottom: 0.9rem;
+}
+
+.field label {
+    display: block;
+    font-weight: 650;
+    margin-bottom: 0.35rem;
+}
+
+.hint {
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.text {
+    width: 100%;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+
+.tag-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.6rem;
+}
+
+.tags-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.6rem;
+    max-height: 240px;
+    overflow: auto;
+    padding: 0.25rem 0.15rem;
+}
+
+.tag-option {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    padding: 0.25rem 0.6rem;
+    background: rgba(27, 55, 55, 0.06);
+    user-select: none;
+}
+
+html.dark .tag-option {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.tag-option input {
+    margin: 0;
+}
+
+.timestamps {
+    border-top: 1px dashed var(--border-color);
+    padding-top: 0.8rem;
+    display: grid;
+    gap: 0.35rem;
+    color: var(--text-secondary);
+}
+
+.timestamps strong {
+    color: var(--text-primary);
+}
+
+.editor-shell {
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    background: white;
+}
+
+html.dark .editor-shell {
+    background: var(--surface);
+}
+
+.quill-editor-host {
+    min-height: 340px;
+}
+
+/* Quill sizing */
+.quill-editor-host .ql-container {
+    min-height: 340px;
+    font-size: 1rem;
+}
+
+/* Dark-mode tweaks for Quill "snow" theme */
+html.dark .ql-toolbar.ql-snow {
+    border-color: var(--border-color);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+html.dark .ql-container.ql-snow {
+    border-color: var(--border-color);
+}
+
+html.dark .ql-editor {
+    color: var(--text-primary);
+}
+

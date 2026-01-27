@@ -1,0 +1,101 @@
+/* Global CSS Variables for Theme Support */
+:root {
+    --primary: #1b3737;
+    --secondary: #638383;
+    --accent: #a3b8b8;
+    --background-light: #f5f5f0;
+    --background-dark: #0f2323;
+    --surface: #ffffff;
+    --card-dark: #1b3737;
+    --text-primary: #121717;
+    --text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+    --shadow: 0 4px 20px rgba(27, 55, 55, 0.08);
+    --chart-color: #1b3737;
+}
+
+/* Dark Mode Variables */
+html.dark {
+    --background-light: #0f2323;
+    --surface: #1b3737;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --border-color: #374151;
+    --chart-color: #4fd1c5;
+}
+
+/* Base Styles */
+html {
+    transition: background-color 0.3s, color 0.3s;
+}
+
+body {
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* Material Symbols Font */
+.material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Theme Toggle Styles */
+.theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: #f3f4f6;
+    border-radius: 0.75rem;
+    padding: 0.25rem;
+}
+
+html.dark .theme-toggle {
+    background-color: var(--primary);
+}
+
+.theme-btn {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    background: transparent;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+html.dark .theme-btn {
+    color: #d1d5db;
+}
+
+.theme-btn.active {
+    background-color: white;
+    color: var(--primary);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+html.dark .theme-btn.active {
+    background-color: #365555;
+    color: white;
+}
+
+.theme-btn .material-symbols-outlined {
+    font-size: 1.25rem;
+}

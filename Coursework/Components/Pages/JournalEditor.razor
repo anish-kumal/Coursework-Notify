@@ -1,0 +1,368 @@
+@page "/journal/edit"
+@using System.Globalization
+@using Coursework.Services.Models
+@using MauiApp1.Models
+@inject IJournalService JournalService
+@inject IUserService UserService
+@inject IMoodService MoodService
+@inject ITagService TagService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="journal-editor-page">
+    <header class="editor-header">
+        <div>
+            <h1>@(isExisting ? "Edit entry" : "New entry")</h1>
+            <p>One entry per date. Created/updated timestamps are saved automatically.</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-secondary" type="button" @onclick='() => Navigation.NavigateTo("/journal")'>Back</button>
+            @if (isExisting && canModifyExisting)
+            {
+                <button class="btn-danger" type="button" @onclick="DeleteAsync">
+                    <span class="material-symbols-outlined">delete</span>
+                    Delete
+                </button>
+            }
+            @if (!isExisting || canModifyExisting)
+            {
+                <button class="btn-primary" type="button" @onclick="SaveAsync">
+                    <span class="material-symbols-outlined">save</span>
+                    Save
+                </button>
+            }
+        </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="message">@message</div>
+    }
+
+    <div class="editor-grid">
+        <div class="panel">
+            <div class="field">
+                <label>Title</label>
+                <input class="text" maxlength="150" @bind="title" @bind:event="oninput" placeholder="e.g., A calm day" />
+            </div>
+
+            <div class="field">
+                <label>Primary mood (required)</label>
+                <select class="text" @bind="primaryMoodId">
+                    <option value="0" disabled>Select a primary mood…</option>
+                    @foreach (var cat in moodCategories)
+                    {
+                        <optgroup label="@cat.Name">
+                            @foreach (var m in moods.Where(m => m.MoodCategoryId == cat.MoodCategoryId))
+                            {
+                                <option value="@m.MoodId">@m.MoodName</option>
+                            }
+                        </optgroup>
+                    }
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Secondary moods (up to 2)</label>
+                <div class="two-cols">
+                    <select class="text" @bind="secondaryMood1">
+                        <option value="0">(none)</option>
+                        @foreach (var cat in moodCategories)
+                        {
+                            <optgroup label="@cat.Name">
+                                @foreach (var m in moods.Where(m => m.MoodCategoryId == cat.MoodCategoryId))
+                                {
+                                    <option value="@m.MoodId">@m.MoodName</option>
+                                }
+                            </optgroup>
+                        }
+                    </select>
+                    <select class="text" @bind="secondaryMood2">
+                        <option value="0">(none)</option>
+                        @foreach (var cat in moodCategories)
+                        {
+                            <optgroup label="@cat.Name">
+                                @foreach (var m in moods.Where(m => m.MoodCategoryId == cat.MoodCategoryId))
+                                {
+                                    <option value="@m.MoodId">@m.MoodName</option>
+                                }
+                            </optgroup>
+                        }
+                    </select>
+                </div>
+                <div class="hint">Secondary moods must be different from the primary mood.</div>
+            </div>
+
+            <div class="field">
+                <label>Tags</label>
+                <div class="tag-toolbar">
+                    <input class="text" placeholder="Create a tag…" maxlength="32" @bind="newTagName" @bind:event="oninput" />
+                    <button class="btn-secondary" type="button" @onclick="AddTagAsync">Add tag</button>
+                </div>
+                <div class="tags-wrap">
+                    @foreach (var t in tags)
+                    {
+                        <label class="tag-option">
+                            <input type="checkbox"
+                                   checked="@selectedTagIds.Contains(t.TagId)"
+                                   @onchange="(e => ToggleTag(t.TagId, e))" />
+                            <span>#@t.TagName</span>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="timestamps">
+                <div><span>Created:</span> <strong>@(createdAtUtc == null ? "—" : createdAtUtc.Value.ToLocalTime().ToString("g"))</strong></div>
+                <div><span>Updated:</span> <strong>@(updatedAtUtc == null ? "—" : updatedAtUtc.Value.ToLocalTime().ToString("g"))</strong></div>
+            </div>
+        </div>
+
+        <div class="panel panel-editor">
+            <div class="field">
+                <label>Entry (rich text)</label>
+                <div class="editor-shell">
+                    <QuillEditor @ref="quill" Value="@contentHtml" />
+                </div>
+                <div class="hint">Formatting supported: bold, italics, headings, lists, links.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery(Name = "date")] public string? DateQuery { get; set; }
+
+    private int? userId;
+    private bool isExisting;
+    private int? journalId;
+
+    private DateTime selectedDate = DateTime.Today;
+    private string title = "";
+    private string contentHtml = "";
+
+    private List<MoodCategory> moodCategories = new();
+    private List<Mood> moods = new();
+
+    private int primaryMoodId;
+    private int secondaryMood1;
+    private int secondaryMood2;
+
+    private List<Tag> tags = new();
+    private HashSet<int> selectedTagIds = new();
+    private string newTagName = "";
+
+    private DateTime? createdAtUtc;
+    private DateTime? updatedAtUtc;
+    private bool canModifyExisting = true;
+
+    private string message = "";
+    private QuillEditor? quill;
+
+    protected override async Task OnInitializedAsync()
+    {
+        userId = await UserService.GetSingleUserIdAsync();
+        if (userId == null)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await LoadLookupsAsync();
+
+        if (!string.IsNullOrWhiteSpace(DateQuery) &&
+            DateTime.TryParseExact(DateQuery, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+        {
+            selectedDate = parsed.Date;
+        }
+
+        await LoadEntryForDateAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        if (quill != null)
+        {
+            await quill.SetHtmlAsync(contentHtml);
+        }
+    }
+
+    private async Task LoadLookupsAsync()
+    {
+        moodCategories = await MoodService.GetAllCategoriesAsync();
+        moods = await MoodService.GetAllMoodsAsync();
+        tags = await TagService.GetAllTagsAsync();
+
+        if (primaryMoodId == 0 && moods.Count > 0)
+        {
+            primaryMoodId = moods[0].MoodId;
+        }
+    }
+
+    private async Task LoadEntryForDateAsync()
+    {
+        message = "";
+        isExisting = false;
+        journalId = null;
+        createdAtUtc = null;
+        updatedAtUtc = null;
+        canModifyExisting = true;
+
+        var entry = await JournalService.GetEntryByDateAsync(userId!.Value, selectedDate);
+        if (entry == null)
+        {
+            title = "";
+            contentHtml = "";
+            selectedTagIds.Clear();
+            secondaryMood1 = 0;
+            secondaryMood2 = 0;
+            if (quill != null) await quill.SetHtmlAsync("");
+            return;
+        }
+
+        isExisting = true;
+        journalId = entry.JournalId;
+        title = entry.Title ?? "";
+        contentHtml = entry.ContentHtml ?? "";
+        primaryMoodId = entry.PrimaryMoodId;
+
+        var secs = entry.SecondaryMoodIds?.ToList() ?? new List<int>();
+        secondaryMood1 = secs.Count > 0 ? secs[0] : 0;
+        secondaryMood2 = secs.Count > 1 ? secs[1] : 0;
+
+        selectedTagIds = new HashSet<int>(entry.TagIds ?? Array.Empty<int>());
+        createdAtUtc = entry.CreatedAt;
+        updatedAtUtc = entry.UpdatedAt;
+        canModifyExisting = CanModify(entry.CreatedAt);
+
+        if (quill != null) await quill.SetHtmlAsync(contentHtml);
+    }
+
+    private void ToggleTag(int tagId, ChangeEventArgs e)
+    {
+        var isChecked = e.Value is bool b && b;
+        if (isChecked) selectedTagIds.Add(tagId);
+        else selectedTagIds.Remove(tagId);
+    }
+
+    private async Task AddTagAsync()
+    {
+        var name = (newTagName ?? "").Trim();
+        if (name.Length == 0) return;
+
+        var created = await TagService.CreateTagAsync(name);
+        if (created == null)
+        {
+            message = "Tag already exists (or invalid).";
+            return;
+        }
+
+        newTagName = "";
+        tags = await TagService.GetAllTagsAsync();
+        selectedTagIds.Add(created.TagId);
+        message = "Tag created.";
+    }
+
+    private async Task SaveAsync()
+    {
+        message = "";
+
+        if (isExisting && !canModifyExisting)
+        {
+            message = "Edits are only allowed within 24 hours of creation.";
+            return;
+        }
+
+        if (primaryMoodId <= 0)
+        {
+            message = "Primary mood is required.";
+            return;
+        }
+
+        var t = (title ?? "").Trim();
+        if (t.Length == 0)
+        {
+            message = "Title is required.";
+            return;
+        }
+
+        var html = quill == null ? (contentHtml ?? "") : await quill.GetHtmlAsync();
+        contentHtml = html ?? "";
+
+        var secondary = new List<int>();
+        if (secondaryMood1 > 0) secondary.Add(secondaryMood1);
+        if (secondaryMood2 > 0) secondary.Add(secondaryMood2);
+        secondary = secondary.Where(id => id != primaryMoodId).Distinct().Take(2).ToList();
+
+        var request = new JournalEntryUpsertRequest(
+            userId!.Value,
+            selectedDate,
+            t,
+            contentHtml,
+            primaryMoodId,
+            secondary,
+            selectedTagIds.ToList());
+
+        JournalEntryDetails saved;
+        try
+        {
+            saved = await JournalService.UpsertEntryAsync(request);
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            return;
+        }
+
+        isExisting = true;
+        journalId = saved.JournalId;
+        createdAtUtc = saved.CreatedAt;
+        updatedAtUtc = saved.UpdatedAt;
+        canModifyExisting = CanModify(saved.CreatedAt);
+        message = "Saved.";
+    }
+
+    private async Task DeleteAsync()
+    {
+        if (journalId == null) return;
+
+        if (!canModifyExisting)
+        {
+            message = "Deletes are only allowed within 24 hours of creation.";
+            return;
+        }
+
+        var ok = await JS.InvokeAsync<bool>("confirm", $"Delete the entry for {selectedDate:yyyy-MM-dd}?");
+        if (!ok) return;
+
+        try
+        {
+            await JournalService.DeleteEntryAsync(journalId.Value);
+            message = "Deleted.";
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            return;
+        }
+
+        isExisting = false;
+        journalId = null;
+        title = "";
+        contentHtml = "";
+        selectedTagIds.Clear();
+        secondaryMood1 = 0;
+        secondaryMood2 = 0;
+        createdAtUtc = null;
+        updatedAtUtc = null;
+        canModifyExisting = true;
+        if (quill != null) await quill.SetHtmlAsync("");
+    }
+
+    private static bool CanModify(DateTime createdAtUtc)
+    {
+        return DateTime.UtcNow - createdAtUtc <= TimeSpan.FromHours(24);
+    }
+}
+

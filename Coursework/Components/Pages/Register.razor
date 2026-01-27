@@ -1,0 +1,92 @@
+@page "/register"
+@using Coursework.Services
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<div class="register-container">
+    <div class="register-card">
+        <div class="register-header">
+            <h1>Create Account</h1>
+            <p>Join us and start your journey</p>
+        </div>
+
+        <div class="register-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text"
+                       id="username"
+                       class="form-input"
+                       placeholder="Choose a username"
+                       @bind="username" />
+            </div>
+
+            <div class="form-group">
+                <label for="pin">PIN (4 digits)</label>
+                <input type="password"
+                       id="pin"
+                       class="form-input"
+                       placeholder="Enter a 4-digit PIN"
+                       maxlength="4"
+                       @bind="pin" />
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPin">Confirm PIN</label>
+                <input type="password"
+                       id="confirmPin"
+                       class="form-input"
+                       placeholder="Re-enter your PIN"
+                       maxlength="4"
+                       @bind="confirmPin" />
+            </div>
+
+
+            <button class="btn btn-primary" @onclick="RegisterAsync">
+                Create Account
+            </button>
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error">@errorMessage</div>
+            }
+
+            <div class="login-link">
+                <span>Already have an account?</span>
+                <a href="/" class="link">Login here</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string username = "";
+    private string pin = "";
+    private string confirmPin = "";
+    private string errorMessage = "";
+
+    private async Task RegisterAsync()
+    {
+        errorMessage = "";
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(pin) || string.IsNullOrWhiteSpace(confirmPin))
+        {
+            errorMessage = "All fields are required.";
+            return;
+        }
+        if (!System.Text.RegularExpressions.Regex.IsMatch(pin, @"^\d{4}$"))
+        {
+            errorMessage = "PIN must be exactly 4 digits.";
+            return;
+        }
+        if (pin != confirmPin)
+        {
+            errorMessage = "PINs do not match.";
+            return;
+        }
+        if (!await UserService.RegisterUserAsync(username, pin))
+        {
+            errorMessage = "User already exists or PIN invalid.";
+            return;
+        }
+        Navigation.NavigateTo("/");
+    }
+}
+

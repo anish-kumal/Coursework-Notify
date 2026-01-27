@@ -1,0 +1,20 @@
+@inherits LayoutComponentBase
+
+<div class="page">
+    <main>
+
+        <div class="top-row px-4">
+            <div class="theme-toggle">
+                <button id="light-mode-btn" class="theme-btn active" title="Light Mode">
+                    <span class="material-symbols-outlined">light_mode</span>
+                </button>
+                <button id="dark-mode-btn" class="theme-btn" title="Dark Mode">
+                    <span class="material-symbols-outlined">dark_mode</span>
+                </button>
+            </div>
+        </div>
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>

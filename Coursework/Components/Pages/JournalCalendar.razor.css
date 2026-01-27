@@ -1,0 +1,149 @@
+.journal-calendar-page {
+    padding: 1.5rem 0;
+}
+
+.calendar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.calendar-title h1 {
+    margin: 0;
+    font-size: 2.25rem;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    color: var(--primary);
+}
+
+html.dark .calendar-title h1 {
+    color: white;
+}
+
+.calendar-title p {
+    margin: 0.25rem 0 0;
+    color: var(--text-secondary);
+}
+
+.calendar-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.month-label {
+    min-width: 9rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.calendar-grid {
+    background: var(--surface);
+    border-radius: 1.25rem;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+    padding: 1.25rem 1.5rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.weekday-cell {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    padding-bottom: 0.5rem;
+}
+
+.day-cell {
+    position: relative;
+    border-radius: 0.9rem;
+    padding: 0.5rem 0.6rem;
+    background: transparent;
+    border: 1px solid transparent;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+    min-height: 3.5rem;
+}
+
+.day-cell:hover {
+    background-color: rgba(27, 55, 55, 0.06);
+    transform: translateY(-1px);
+}
+
+.day-number {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.day-outside {
+    opacity: 0.4;
+}
+
+.day-today {
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.6);
+}
+
+.day-has-entry {
+    background-color: rgba(27, 55, 55, 0.04);
+}
+
+.day-has-entry .day-number {
+    color: var(--primary);
+}
+
+html.dark .day-has-entry {
+    background-color: rgba(148, 163, 184, 0.12);
+}
+
+.day-entry {
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    max-height: 2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.day-entry-title {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.loading,
+.message {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--surface);
+}
+
+.message {
+    background: rgba(79, 209, 197, 0.12);
+    border-color: rgba(79, 209, 197, 0.25);
+}
+
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.4rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    cursor: pointer;
+}
+
+.btn-secondary .material-symbols-outlined {
+    font-size: 1.1rem;
+}
+

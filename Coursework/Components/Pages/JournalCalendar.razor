@@ -1,0 +1,154 @@
+@page "/calendar"
+@using Coursework.Services.Models
+@inject NavigationManager Navigation
+@inject IUserService UserService
+@inject IJournalService JournalService
+
+<div class="journal-calendar-page">
+    <header class="calendar-header">
+        <div class="calendar-title">
+            <h1>Journal Calendar</h1>
+            <p>Click a day to view your entry.</p>
+        </div>
+        <div class="calendar-controls">
+            <button class="btn-secondary" type="button" @onclick="PreviousMonth">
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+            <div class="month-label">@currentMonth.ToString("MMMM yyyy")</div>
+            <button class="btn-secondary" type="button" @onclick="NextMonth">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="message">@message</div>
+    }
+
+    <div class="calendar-grid">
+        @foreach (var label in weekdayLabels)
+        {
+            <div class="weekday-cell">@label</div>
+        }
+
+        @foreach (var day in CalendarDays)
+        {
+            var hasEntry = entriesByDate.TryGetValue(day.Date, out var entry);
+            var isCurrentMonth = day.Month == currentMonth.Month && day.Year == currentMonth.Year;
+            var isToday = day.Date == DateTime.Today;
+
+            <button class="@GetDayCellClass(isCurrentMonth, isToday, hasEntry)"
+                    type="button"
+                    @onclick="() => OnDayClicked(day)">
+                <div class="day-number">@day.Day</div>
+                @if (hasEntry)
+                {
+                    <div class="day-entry">
+                        <span class="day-entry-title">@entry!.Title</span>
+                    </div>
+                }
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    private int? userId;
+    private bool loading = true;
+    private string message = "";
+
+    private DateTime currentMonth = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+
+    private readonly string[] weekdayLabels = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+
+    private Dictionary<DateTime, JournalListItem> entriesByDate = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        userId = await UserService.GetSingleUserIdAsync();
+        if (userId == null)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await LoadMonthAsync();
+    }
+
+    private async Task LoadMonthAsync()
+    {
+        message = "";
+        entriesByDate = new Dictionary<DateTime, JournalListItem>();
+
+        try
+        {
+            var start = currentMonth.Date;
+            var end = start.AddMonths(1);
+
+            var entries = await JournalService.GetEntriesInRangeAsync(userId!.Value, start, end);
+            entriesByDate = entries
+                .GroupBy(e => e.EntryDate.Date)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(x => x.UpdatedAt).First());
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private IEnumerable<DateTime> CalendarDays
+    {
+        get
+        {
+            var firstOfMonth = currentMonth.Date;
+
+            // Start the calendar on Monday.
+            var offset = ((int)firstOfMonth.DayOfWeek + 6) % 7;
+            var calendarStart = firstOfMonth.AddDays(-offset);
+
+            for (var i = 0; i < 42; i++)
+            {
+                yield return calendarStart.AddDays(i);
+            }
+        }
+    }
+
+    private async Task PreviousMonth()
+    {
+        currentMonth = currentMonth.AddMonths(-1);
+        await LoadMonthAsync();
+    }
+
+    private async Task NextMonth()
+    {
+        currentMonth = currentMonth.AddMonths(1);
+        await LoadMonthAsync();
+    }
+
+    private string GetDayCellClass(bool isCurrentMonth, bool isToday, bool hasEntry)
+    {
+        var classes = new List<string> { "day-cell" };
+
+        if (!isCurrentMonth) classes.Add("day-outside");
+        if (isToday) classes.Add("day-today");
+        if (hasEntry) classes.Add("day-has-entry");
+
+        return string.Join(" ", classes);
+    }
+
+    private void OnDayClicked(DateTime day)
+    {
+        // Only navigate if there is an entry for that exact date.
+        if (entriesByDate.TryGetValue(day.Date, out var entry))
+        {
+            Navigation.NavigateTo($"/journal/details/{entry.JournalId}");
+        }
+        // If no entry, stay on the calendar and do nothing.
+    }
+}
+

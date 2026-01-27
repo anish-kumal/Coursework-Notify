@@ -1,0 +1,267 @@
+/* Component-specific styles - uses global CSS variables from styles.css */
+
+.moods-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.moods-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.moods-title h1 {
+    color: var(--primary);
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    margin: 0;
+}
+
+html.dark .moods-title h1 {
+    color: white;
+}
+
+.moods-title p {
+    margin: 0.25rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+html.dark .moods-title p {
+    color: #9ca3af;
+}
+
+.moods-toolbar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 1rem 0 1.25rem;
+    flex-wrap: wrap;
+}
+
+.mood-input, .mood-edit {
+    flex: 1;
+    min-width: 220px;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    outline: none;
+}
+
+html.dark .mood-input, html.dark .mood-edit {
+    background: var(--card-dark);
+    border-color: #374151;
+    color: #f3f4f6;
+}
+
+.mood-select, .mood-edit-select {
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    outline: none;
+    min-width: 160px;
+}
+
+html.dark .mood-select, html.dark .mood-edit-select {
+    background: var(--card-dark);
+    border-color: #374151;
+    color: #f3f4f6;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: var(--shadow);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-primary .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.message {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(27, 55, 55, 0.08);
+    border: 1px solid rgba(27, 55, 55, 0.12);
+    color: var(--primary);
+    font-weight: 500;
+}
+
+html.dark .message {
+    background: rgba(79, 209, 197, 0.08);
+    border-color: rgba(79, 209, 197, 0.18);
+    color: #99f6e4;
+}
+
+.moods-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+    .moods-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.moods-card {
+    background-color: var(--surface);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+html.dark .moods-card {
+    background-color: var(--card-dark);
+    box-shadow: none;
+    border-color: #374151;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--primary);
+    font-weight: 800;
+}
+
+html.dark .card-header h3 {
+    color: white;
+}
+
+.count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+html.dark .count {
+    color: #9ca3af;
+}
+
+.section {
+    margin-top: 0.9rem;
+}
+
+.section-title {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+}
+
+html.dark .section-title {
+    color: #9ca3af;
+}
+
+.moods-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.moods-list.column {
+    flex-direction: column;
+}
+
+.mood-chip {
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.6rem;
+    background-color: var(--background-light);
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    user-select: none;
+}
+
+html.dark .mood-chip {
+    background-color: rgba(13, 148, 136, 0.2);
+    color: #99f6e4;
+    border-color: rgba(13, 148, 136, 0.3);
+}
+
+.empty {
+    margin: 0.25rem 0 0;
+    color: var(--text-secondary);
+}
+
+html.dark .empty {
+    color: #9ca3af;
+}
+
+.mood-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.mood-actions {
+    display: inline-flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.icon-btn {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--primary);
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.45rem;
+    cursor: pointer;
+}
+
+html.dark .icon-btn {
+    border-color: #374151;
+    color: #d1d5db;
+}
+
+.icon-btn.danger {
+    color: #b91c1c;
+}
+
+html.dark .icon-btn.danger {
+    color: #fca5a5;
+}
+
+.icon-btn .material-symbols-outlined {
+    font-size: 1.15rem;
+}
+

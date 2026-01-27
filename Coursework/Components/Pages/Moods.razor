@@ -1,0 +1,229 @@
+@page "/moods"
+@using MauiApp1.Models
+@using Coursework.Services
+@inject IMoodService MoodService
+
+<div class="moods-page">
+    <div class="moods-header">
+        <div class="moods-title">
+            <h1>Moods</h1>
+            <p>Manage your predefined and custom moods by category.</p>
+        </div>
+    </div>
+
+    <div class="moods-toolbar">
+        <input class="mood-input"
+               placeholder="Create a new mood..."
+               maxlength="32"
+               @bind="newMoodName"
+               @bind:event="oninput" />
+
+        <select class="mood-select" @bind="newMoodCategoryId">
+            @foreach (var cat in categories)
+            {
+                <option value="@cat.MoodCategoryId">@cat.Name</option>
+            }
+        </select>
+
+        <button type="button" class="btn-primary" @onclick="CreateMoodAsync" disabled="@(categories.Count == 0)">
+            <span class="material-symbols-outlined">add</span>
+            Add
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="message">@message</div>
+    }
+
+    <div class="moods-grid">
+        @foreach (var cat in categories)
+        {
+            var catMoods = moods.Where(m => m.MoodCategoryId == cat.MoodCategoryId).ToList();
+            var predefined = catMoods.Where(m => m.IsPredefined).ToList();
+            var custom = catMoods.Where(m => !m.IsPredefined).ToList();
+
+            <div class="moods-card">
+                <div class="card-header">
+                    <h3>@cat.Name</h3>
+                    <span class="count">@catMoods.Count</span>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Predefined</div>
+                    <div class="moods-list">
+                        @if (predefined.Count == 0)
+                        {
+                            <p class="empty">No predefined moods.</p>
+                        }
+                        else
+                        {
+                            @foreach (var mood in predefined)
+                            {
+                                <span class="mood-chip">@mood.MoodName</span>
+                            }
+                        }
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Custom</div>
+                    <div class="moods-list column">
+                        @if (custom.Count == 0)
+                        {
+                            <p class="empty">No custom moods yet.</p>
+                        }
+                        else
+                        {
+                            @foreach (var mood in custom)
+                            {
+                                <div class="mood-row">
+                                    @if (editingMoodId == mood.MoodId)
+                                    {
+                                        <input class="mood-edit"
+                                               maxlength="32"
+                                               @bind="editingMoodName"
+                                               @bind:event="oninput" />
+
+                                        <select class="mood-edit-select" @bind="editingMoodCategoryId">
+                                            @foreach (var c in categories)
+                                            {
+                                                <option value="@c.MoodCategoryId">@c.Name</option>
+                                            }
+                                        </select>
+
+                                        <button class="icon-btn" title="Save" @onclick="(() => SaveEditAsync(mood))">
+                                            <span class="material-symbols-outlined">check</span>
+                                        </button>
+                                        <button class="icon-btn" title="Cancel" @onclick="CancelEdit">
+                                            <span class="material-symbols-outlined">close</span>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <span class="mood-chip">@mood.MoodName</span>
+                                        <div class="mood-actions">
+                                            <button class="icon-btn" title="Edit" @onclick="(() => StartEdit(mood))">
+                                                <span class="material-symbols-outlined">edit</span>
+                                            </button>
+                                            <button class="icon-btn danger" title="Delete" @onclick="(() => DeleteMoodAsync(mood))">
+                                                <span class="material-symbols-outlined">delete</span>
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string message = "";
+    private string newMoodName = "";
+    private int newMoodCategoryId;
+
+    private List<MoodCategory> categories = new();
+    private List<Mood> moods = new();
+
+    private int? editingMoodId;
+    private string editingMoodName = "";
+    private int editingMoodCategoryId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            categories = await MoodService.GetAllCategoriesAsync();
+            moods = await MoodService.GetAllMoodsAsync();
+
+            if (categories.Count > 0 && newMoodCategoryId == 0)
+            {
+                newMoodCategoryId = categories[0].MoodCategoryId;
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task CreateMoodAsync()
+    {
+        var name = newMoodName.Trim();
+        if (name.Length == 0) return;
+
+        message = "";
+        var created = await MoodService.CreateMoodAsync(name, newMoodCategoryId);
+        if (created == null)
+        {
+            message = "Mood already exists (or invalid).";
+            return;
+        }
+
+        newMoodName = "";
+        message = "Mood created.";
+        await LoadAsync();
+    }
+
+    private void StartEdit(Mood mood)
+    {
+        editingMoodId = mood.MoodId;
+        editingMoodName = mood.MoodName;
+        editingMoodCategoryId = mood.MoodCategoryId;
+        message = "";
+    }
+
+    private void CancelEdit()
+    {
+        editingMoodId = null;
+        editingMoodName = "";
+        editingMoodCategoryId = 0;
+    }
+
+    private async Task SaveEditAsync(Mood mood)
+    {
+        var name = editingMoodName.Trim();
+        if (name.Length == 0)
+        {
+            message = "Mood name can't be empty.";
+            return;
+        }
+
+        message = "";
+        var ok = await MoodService.UpdateMoodAsync(new Mood
+        {
+            MoodId = mood.MoodId,
+            MoodName = name,
+            MoodCategoryId = editingMoodCategoryId,
+            IsPredefined = false
+        });
+
+        if (!ok)
+        {
+            message = "Can't edit predefined moods (or name already exists).";
+            return;
+        }
+
+        CancelEdit();
+        message = "Mood updated.";
+        await LoadAsync();
+    }
+
+    private async Task DeleteMoodAsync(Mood mood)
+    {
+        message = "";
+        var ok = await MoodService.DeleteMoodAsync(mood.MoodId);
+        message = ok ? "Mood deleted." : "Can't delete predefined moods.";
+        await LoadAsync();
+    }
+}
+

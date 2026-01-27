@@ -1,0 +1,163 @@
+@page "/journal/details/{JournalId:int}"
+@using Coursework.Services.Models
+@using MauiApp1.Models
+@inject IJournalService JournalService
+@inject IUserService UserService
+@inject IMoodService MoodService
+@inject ITagService TagService
+@inject NavigationManager Navigation
+
+<div class="journal-details-page">
+    <header class="details-header">
+        <div>
+            <h1>@(entry?.Title ?? "Journal Entry")</h1>
+            <p>@(entry?.EntryDate.ToString("dddd, dd MMMM yyyy") ?? "")</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-secondary" type="button" @onclick='() => Navigation.NavigateTo("/journal")'>Back</button>
+            @if (entry != null)
+            {
+                @if (CanModify(entry.CreatedAt))
+                {
+                    <button class="btn-primary" type="button" @onclick='() => Navigation.NavigateTo($"/journal/edit?date={entry.EntryDate:yyyy-MM-dd}")'>
+                        <span class="material-symbols-outlined">edit</span>
+                        Edit
+                    </button>
+                }
+            }
+        </div>
+    </header>
+
+    @if (loading)
+    {
+        <div class="loading">Loading…</div>
+    }
+    else if (entry == null)
+    {
+        <div class="empty-state">
+            <p>Journal entry not found.</p>
+            <button class="btn-secondary" type="button" @onclick='() => Navigation.NavigateTo("/journal")'>Back to Journal</button>
+        </div>
+    }
+    else
+    {
+        <div class="details-grid">
+            <div class="panel">
+                <div class="details-section">
+                    <h2>@entry.Title</h2>
+                    <div class="entry-date">@entry.EntryDate.ToString("dddd, dd MMMM yyyy")</div>
+                </div>
+
+                <div class="details-section">
+                    <h3>Moods</h3>
+                    <div class="moods-display">
+                        <div class="mood-item primary">
+                            <span class="material-symbols-outlined">mood</span>
+                            <span>@PrimaryMoodName</span>
+                        </div>
+                        @foreach (var moodId in entry.SecondaryMoodIds)
+                        {
+                            <div class="mood-item secondary">
+                                <span>@MoodName(moodId)</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                @if (entry.TagIds != null && entry.TagIds.Count > 0)
+                {
+                    <div class="details-section">
+                        <h3>Tags</h3>
+                        <div class="tags-display">
+                            @foreach (var tagId in entry.TagIds)
+                            {
+                                <span class="tag-chip">#@TagName(tagId)</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div class="details-section">
+                    <h3>Timestamps</h3>
+                    <div class="timestamps">
+                        <div><span>Created:</span> <strong>@entry.CreatedAt.ToLocalTime().ToString("g")</strong></div>
+                        <div><span>Updated:</span> <strong>@entry.UpdatedAt.ToLocalTime().ToString("g")</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel panel-content">
+                <div class="details-section">
+                    <h3>Entry Content</h3>
+                    <div class="content-display">@((MarkupString)entry.ContentHtml)</div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int JournalId { get; set; }
+
+    private int? userId;
+    private JournalEntryDetails? entry;
+    private bool loading = true;
+
+    private List<Mood> moods = new();
+    private List<Tag> tags = new();
+
+    private Dictionary<int, string> moodNameById = new();
+    private Dictionary<int, string> tagNameById = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        userId = await UserService.GetSingleUserIdAsync();
+        if (userId == null)
+        {
+            Navigation.NavigateTo("/");
+            return;
+        }
+
+        await LoadLookupsAsync();
+        await LoadEntryAsync();
+    }
+
+    private async Task LoadLookupsAsync()
+    {
+        moods = await MoodService.GetAllMoodsAsync();
+        tags = await TagService.GetAllTagsAsync();
+
+        moodNameById = moods.ToDictionary(m => m.MoodId, m => m.MoodName ?? "");
+        tagNameById = tags.ToDictionary(t => t.TagId, t => t.TagName ?? "");
+    }
+
+    private async Task LoadEntryAsync()
+    {
+        loading = true;
+        entry = await JournalService.GetEntryByIdAsync(JournalId);
+        loading = false;
+    }
+
+    private string PrimaryMoodName => entry != null && moodNameById.TryGetValue(entry.PrimaryMoodId, out var name) && !string.IsNullOrWhiteSpace(name)
+        ? name
+        : entry != null ? $"Mood #{entry.PrimaryMoodId}" : "";
+
+    private string MoodName(int moodId)
+    {
+        return moodNameById.TryGetValue(moodId, out var name) && !string.IsNullOrWhiteSpace(name)
+            ? name
+            : $"Mood #{moodId}";
+    }
+
+    private string TagName(int tagId)
+    {
+        return tagNameById.TryGetValue(tagId, out var name) && !string.IsNullOrWhiteSpace(name)
+            ? name
+            : $"Tag #{tagId}";
+    }
+
+    private static bool CanModify(DateTime createdAtUtc)
+    {
+        return DateTime.UtcNow - createdAtUtc <= TimeSpan.FromHours(24);
+    }
+}

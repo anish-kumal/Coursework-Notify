@@ -1,0 +1,226 @@
+.journal-details-page {
+    padding: 1.25rem 0;
+}
+
+.details-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.details-header h1 {
+    margin: 0;
+    font-size: 1.75rem;
+}
+
+.details-header p {
+    margin: 0.25rem 0 0 0;
+    color: var(--text-secondary);
+}
+
+.header-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.btn-primary, .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    font-weight: 650;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border-color: rgba(0,0,0,0.05);
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-secondary);
+}
+
+.empty-state p {
+    margin-bottom: 1rem;
+}
+
+.details-grid {
+    display: grid;
+    grid-template-columns: 360px minmax(0, 1fr);
+    gap: 0.9rem;
+}
+
+@media (max-width: 900px) {
+    .details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.panel-content {
+    padding: 1.25rem;
+}
+
+.details-section {
+    margin-bottom: 1.5rem;
+}
+
+.details-section:last-child {
+    margin-bottom: 0;
+}
+
+.details-section h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.details-section h3 {
+    margin: 0 0 0.75rem 0;
+    font-size: 1rem;
+    font-weight: 650;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.85rem;
+}
+
+.entry-date {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+}
+
+.moods-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.mood-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+}
+
+.mood-item.primary {
+    background: rgba(79, 209, 197, 0.12);
+    border-color: rgba(79, 209, 197, 0.25);
+}
+
+.mood-item.secondary {
+    background: rgba(27, 55, 55, 0.06);
+}
+
+html.dark .mood-item.secondary {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.mood-item .material-symbols-outlined {
+    font-size: 1.2rem;
+}
+
+.tags-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag-chip {
+    display: inline-block;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(27, 55, 55, 0.06);
+    border: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+html.dark .tag-chip {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.timestamps {
+    display: grid;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.timestamps strong {
+    color: var(--text-primary);
+}
+
+.content-display {
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background: var(--surface);
+    min-height: 200px;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.content-display h1,
+.content-display h2,
+.content-display h3,
+.content-display h4,
+.content-display h5,
+.content-display h6 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.content-display p {
+    margin: 0.75rem 0;
+}
+
+.content-display ul,
+.content-display ol {
+    margin: 0.75rem 0;
+    padding-left: 1.5rem;
+}
+
+.content-display a {
+    color: var(--primary);
+    text-decoration: underline;
+}
+
+.content-display blockquote {
+    margin: 1rem 0;
+    padding-left: 1rem;
+    border-left: 3px solid var(--border-color);
+    color: var(--text-secondary);
+}

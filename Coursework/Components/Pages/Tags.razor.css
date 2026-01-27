@@ -1,0 +1,226 @@
+/* Component-specific styles - uses global CSS variables from styles.css */
+
+.tags-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.tags-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+
+.tags-title h1 {
+    color: var(--primary);
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    margin: 0;
+}
+
+html.dark .tags-title h1 {
+    color: white;
+}
+
+.tags-title p {
+    margin: 0.25rem 0 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+html.dark .tags-title p {
+    color: #9ca3af;
+}
+
+.tags-toolbar {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 1rem 0 1.25rem;
+}
+
+.tag-input, .tag-edit {
+    flex: 1;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    outline: none;
+}
+
+html.dark .tag-input, html.dark .tag-edit {
+    background: var(--card-dark);
+    border-color: #374151;
+    color: #f3f4f6;
+}
+
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: none;
+    border-radius: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: var(--shadow);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-primary .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.message {
+    margin: 0 0 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(27, 55, 55, 0.08);
+    border: 1px solid rgba(27, 55, 55, 0.12);
+    color: var(--primary);
+    font-weight: 500;
+}
+
+html.dark .message {
+    background: rgba(79, 209, 197, 0.08);
+    border-color: rgba(79, 209, 197, 0.18);
+    color: #99f6e4;
+}
+
+.tags-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+    .tags-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.tags-card {
+    background-color: var(--surface);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+html.dark .tags-card {
+    background-color: var(--card-dark);
+    box-shadow: none;
+    border-color: #374151;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.75rem;
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--primary);
+    font-weight: 800;
+}
+
+html.dark .card-header h3 {
+    color: white;
+}
+
+.count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+html.dark .count {
+    color: #9ca3af;
+}
+
+.tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.tag {
+    padding: 0.5rem 0.85rem;
+    border-radius: 0.6rem;
+    background-color: var(--background-light);
+    color: var(--primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: 1px solid var(--border-color);
+    user-select: none;
+}
+
+html.dark .tag {
+    background-color: rgba(13, 148, 136, 0.2);
+    color: #99f6e4;
+    border-color: rgba(13, 148, 136, 0.3);
+}
+
+.empty {
+    margin: 0.25rem 0 0;
+    color: var(--text-secondary);
+}
+
+html.dark .empty {
+    color: #9ca3af;
+}
+
+.tag-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.tag-actions {
+    display: inline-flex;
+    gap: 0.25rem;
+}
+
+.icon-btn {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--primary);
+    border-radius: 0.6rem;
+    padding: 0.35rem 0.45rem;
+    cursor: pointer;
+}
+
+html.dark .icon-btn {
+    border-color: #374151;
+    color: #d1d5db;
+}
+
+.icon-btn.danger {
+    color: #b91c1c;
+}
+
+html.dark .icon-btn.danger {
+    color: #fca5a5;
+}
+
+.icon-btn .material-symbols-outlined {
+    font-size: 1.15rem;
+}
+

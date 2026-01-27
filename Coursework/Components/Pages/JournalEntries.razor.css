@@ -1,0 +1,290 @@
+.journal-page {
+    padding: 1.25rem 0;
+}
+
+.journal-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.journal-header h1 {
+    margin: 0;
+    font-size: 2.25rem;
+    font-weight: 900;
+    letter-spacing: -0.025em;
+    color: var(--primary);
+}
+
+html.dark .journal-header h1 {
+    color: white;
+}
+
+.journal-header p {
+    margin: 0.25rem 0 0 0;
+    color: var(--text-secondary);
+}
+
+.journal-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.journal-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 10rem;
+}
+
+.filter-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.filter-input,
+.filter-select {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    background: var(--surface);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.filter-input {
+    min-width: 14rem;
+}
+
+.filter-input:focus,
+.filter-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(79, 209, 197, 0.2);
+}
+
+.filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.jump {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.date-input {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    background: var(--surface);
+    border-radius: 0.75rem;
+    color: var(--text-primary);
+}
+
+.message {
+    margin: 0.75rem 0;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background: rgba(79, 209, 197, 0.12);
+    border: 1px solid rgba(79, 209, 197, 0.25);
+}
+
+.streak-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin: 1rem 0 1.25rem 0;
+}
+
+@media (max-width: 900px) {
+    .streak-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.streak-card {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    box-shadow: var(--shadow);
+}
+
+.streak-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.streak-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-top: 0.15rem;
+}
+
+.streak-meta {
+    margin-top: 0.25rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.loading, .empty-state {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1rem;
+}
+
+.entries {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.entry-card {
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: var(--shadow);
+}
+
+.entry-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.entry-date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.entry-title {
+    margin-top: 0.25rem;
+    font-size: 1.1rem;
+    font-weight: 650;
+}
+
+.entry-preview {
+    margin-top: 0.4rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.entry-meta {
+    margin-top: 0.8rem;
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.meta-chip, .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    border: 1px solid var(--border-color);
+    background: rgba(27, 55, 55, 0.06);
+}
+
+html.dark .meta-chip, html.dark .tag-chip {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.meta-chip.secondary {
+    opacity: 0.9;
+}
+
+.meta-chip .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+.entry-buttons {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.icon-btn {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    border-radius: 0.75rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: background-color 0.15s ease;
+}
+
+.icon-btn:hover {
+    background: rgba(27, 55, 55, 0.06);
+}
+
+.icon-btn.danger {
+    color: #b91c1c;
+}
+
+.pager {
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.pager-info {
+    color: var(--text-secondary);
+}
+
+.btn-primary, .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.9rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    border-color: rgba(0,0,0,0.05);
+}
+
+.btn-secondary {
+    background: var(--surface);
+    color: var(--text-primary);
+}
+
+.btn-primary .material-symbols-outlined {
+    font-size: 1.15rem;
+}
+

@@ -1,0 +1,369 @@
+@page "/home"
+@using System
+@using System.Linq
+@using Coursework.Services
+@using Coursework.Services.Models
+@inject NavigationManager Navigation
+@inject IUserService UserService
+@inject IJournalService JournalService
+@inject IMoodService MoodService
+@inject ITagService TagService
+
+<div class="main-content">
+    <div class="dashboard-content">
+        <header class="main-header">
+            <div class="header-container">
+                <div class="header-title">
+                    <p class="header-date">@DateTime.Now.ToString("dddd, dd MMM yyyy")</p>
+                    <h1>Dashboard</h1>
+                </div>
+            </div>
+        </header>
+        <div class="content-container">
+        <!-- Stats Row -->
+        <div class="stats-grid">
+            <!-- Card 1: Streak -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon stat-icon-orange">
+                        <span class="material-symbols-outlined">local_fire_department</span>
+                    </div>
+                    
+                </div>
+                <div class="stat-card-body">
+                    <p class="stat-label">Current Streak</p>
+                    <h3 class="stat-value">@currentStreak Days</h3>
+                    <p class="stat-meta">Consecutive days</p>
+                </div>
+            </div>
+
+            <!-- Card 2: Total Entries -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon stat-icon-blue">
+                        <span class="material-symbols-outlined">book</span>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <p class="stat-label">Total Entries</p>
+                    <h3 class="stat-value">@totalEntries</h3>
+                    <p class="stat-meta">Saved entries</p>
+                </div>
+            </div>
+
+            <!-- Card 3: Missed Days -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon stat-icon-amber">
+                        <span class="material-symbols-outlined">event_busy</span>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <p class="stat-label">Missed Days</p>
+                    <h3 class="stat-value">@missedDays</h3>
+                    <p class="stat-meta">Since first entry</p>
+                </div>
+            </div>
+
+            <!-- Card 4: Longest Streak -->
+            <div class="stat-card">
+                <div class="stat-card-header">
+                    <div class="stat-icon stat-icon-teal">
+                        <span class="material-symbols-outlined">emoji_events</span>
+                    </div>
+                </div>
+                <div class="stat-card-body">
+                    <p class="stat-label">Longest Streak</p>
+                    <h3 class="stat-value">@longestStreak Days</h3>
+                    <p class="stat-meta">Best run</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="charts-grid">
+            <!-- Word Count Trend (last 7 entries by entry date) -->
+            <div class="chart-card chart-card-wide">
+                <div class="chart-header">
+                    <div>
+                        <h3>Word Count Trend</h3>
+                        <p class="chart-subtitle">
+                            @if (recentWordCounts.Count == 0)
+                            {
+                                <span>No words written yet.</span>
+                            }
+                            else
+                            {
+                                <span>You wrote @totalRecentWords words in your last @recentWordCounts.Count entries.</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    @if (recentWordCounts.Count == 0)
+                    {
+                        <div class="empty-chart">No entries to show yet.</div>
+                    }
+                    else
+                    {
+                        <div class="line-chart-wrap">
+                            <svg class="line-chart-svg" viewBox="0 0 480 160" preserveAspectRatio="none">
+                                <defs>
+                                    <linearGradient id="lineChartGradient" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stop-color="#1b3737" stop-opacity="0.2" />
+                                        <stop offset="100%" stop-color="#1b3737" stop-opacity="0" />
+                                    </linearGradient>
+                                    <linearGradient id="lineChartGradientDark" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stop-color="#0d9488" stop-opacity="0.2" />
+                                        <stop offset="100%" stop-color="#0d9488" stop-opacity="0" />
+                                    </linearGradient>
+                                </defs>
+                                <path class="line-chart-area" d="@GetLineChartAreaPath()" />
+                                <path class="line-chart-line" d="@GetLineChartLinePath()" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                                @foreach (var p in GetLineChartPoints())
+                                {
+                                    <circle class="line-chart-dot" cx="@p.X" cy="@p.Y" r="4" />
+                                }
+                            </svg>
+                            <div class="line-chart-labels">
+                                @{
+                                    var pts = GetLineChartPoints();
+                                    var idx = 0;
+                                }
+                                @foreach (var point in OrderedWordPoints)
+                                {
+                                    var pos = idx < pts.Length ? GetLineChartLabelPosition(idx) : 0;
+                                    <span class="line-chart-label" style="left: @(pos.ToString(System.Globalization.CultureInfo.InvariantCulture))%;">@point.EntryDate.ToString("MMM dd")</span>
+                                    idx++;
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Mood Breakdown (top 5 moods, pie chart) -->
+            <div class="chart-card">
+                <h3>Mood Breakdown</h3>
+                <div class="mood-content">
+                    <div class="pie-chart-wrapper">
+                        <div class="pie-chart" style="@BuildPieBackgroundStyle()">
+                            <div class="pie-chart-center">
+                                <span class="pie-percentage">@TopMoodPercentageText</span>
+                                <span class="pie-label">@TopMoodLabel</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mood-legend">
+                        @if (moodBreakdown.Count == 0)
+                        {
+                            <p class="chart-subtitle">No mood data yet.</p>
+                        }
+                        else
+                        {
+                            @for (var i = 0; i < moodBreakdown.Count; i++)
+                            {
+                                var item = moodBreakdown[i];
+                                <div class="legend-item">
+                                    <div class="legend-label">
+                                        <div class="legend-color" style="background-color: @GetMoodColor(i)"></div>
+                                        <span>@GetMoodName(item.MoodId)</span>
+                                    </div>
+                                    <span class="legend-value">@FormatPercentage(item.Count * 100.0 / TotalMoodCount)</span>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Row: Tags & Quote -->
+        <div class="bottom-grid">
+            <!-- Top Tags -->
+            <div class="tags-card">
+                <div class="tags-header">
+                    <h3>Top Tags</h3>
+                    <button class="view-all-btn" type="button" @onclick='() => Navigation.NavigateTo("/tags")'>View All</button>
+                </div>
+                <div class="tags-list">
+                    @if (topTags.Count == 0)
+                    {
+                        <span class="tag">No tags yet.</span>
+                    }
+                    else
+                    {
+                        @foreach (var tag in topTags)
+                        {
+                            <span class="tag">#@GetTagName(tag.TagId) (@tag.Count)</span>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Daily Inspiration/Quote -->
+            <div class="quote-card">
+                <div class="quote-bg-icon">
+                    <span class="material-symbols-outlined">format_quote</span>
+                </div>
+                <div class="quote-content">
+                    <p class="quote-label">Daily Inspiration</p>
+                    <blockquote class="quote-text">
+                        "Keep your face always toward the sunshine—and shadows will fall behind you."
+                    </blockquote>
+                    <p class="quote-author">— Walt Whitman</p>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int currentStreak;
+    private int longestStreak;
+    private int totalEntries;
+    private int missedDays;
+    private IReadOnlyList<WordCountPoint> recentWordCounts = Array.Empty<WordCountPoint>();
+    private int totalRecentWords;
+    private IReadOnlyList<MoodBreakdownItem> moodBreakdown = Array.Empty<MoodBreakdownItem>();
+    private IReadOnlyList<TagUsageItem> topTags = Array.Empty<TagUsageItem>();
+    private Dictionary<int, string> moodNames = new();
+    private Dictionary<int, string> tagNames = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userId = await UserService.GetSingleUserIdAsync();
+        if (userId == null) return;
+
+        var streak = await JournalService.GetStreakStatsAsync(userId.Value, DateTime.Today);
+        currentStreak = streak.CurrentStreakDays;
+        longestStreak = streak.LongestStreakDays;
+        totalEntries = streak.TotalEntries;
+        missedDays = streak.MissedDays;
+
+        var moods = await MoodService.GetAllMoodsAsync();
+        moodNames = moods.ToDictionary(m => m.MoodId, m => m.MoodName ?? string.Empty);
+
+        var tags = await TagService.GetAllTagsAsync();
+        tagNames = tags.ToDictionary(t => t.TagId, t => t.TagName ?? string.Empty);
+
+        recentWordCounts = await JournalService.GetRecentWordCountsAsync(userId.Value, 7);
+        totalRecentWords = recentWordCounts.Sum(p => p.WordCount);
+
+        moodBreakdown = await JournalService.GetMoodBreakdownAsync(userId.Value, 5);
+        topTags = await JournalService.GetTopTagsAsync(userId.Value, 7);
+    }
+
+    private int MaxWordCount => recentWordCounts.Count == 0 ? 0 : recentWordCounts.Max(p => p.WordCount);
+
+    private IEnumerable<WordCountPoint> OrderedWordPoints => recentWordCounts.OrderBy(p => p.EntryDate).ToList();
+
+    private (double X, double Y)[] GetLineChartPoints()
+    {
+        var pts = OrderedWordPoints.ToList();
+        if (pts.Count == 0) return Array.Empty<(double, double)>();
+        const double padL = 24, padR = 24, padT = 12, padB = 32;
+        var w = 480 - padL - padR;
+        var h = 160 - padT - padB;
+        var max = Math.Max(1, MaxWordCount);
+        var step = pts.Count > 1 ? w / (pts.Count - 1) : 0d;
+        var result = new (double X, double Y)[pts.Count];
+        for (var i = 0; i < pts.Count; i++)
+        {
+            var x = padL + i * step;
+            var y = padT + (1 - (double)pts[i].WordCount / max) * h;
+            result[i] = (x, y);
+        }
+        return result;
+    }
+
+    private string GetLineChartLinePath()
+    {
+        var pts = GetLineChartPoints();
+        if (pts.Length == 0) return "";
+        var sb = new System.Text.StringBuilder();
+        sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "M {0:0.##} {1:0.##}", pts[0].X, pts[0].Y);
+        for (var i = 1; i < pts.Length; i++)
+            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, " L {0:0.##} {1:0.##}", pts[i].X, pts[i].Y);
+        return sb.ToString();
+    }
+
+    private string GetLineChartAreaPath()
+    {
+        var pts = GetLineChartPoints();
+        if (pts.Length == 0) return "";
+        const double padB = 32;
+        var baseY = 160 - padB;
+        var sb = new System.Text.StringBuilder();
+        sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, "M {0:0.##} {1:0.##}", pts[0].X, baseY);
+        sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, " L {0:0.##} {1:0.##}", pts[0].X, pts[0].Y);
+        for (var i = 1; i < pts.Length; i++)
+            sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, " L {0:0.##} {1:0.##}", pts[i].X, pts[i].Y);
+        sb.AppendFormat(System.Globalization.CultureInfo.InvariantCulture, " L {0:0.##} {1:0.##} Z", pts[pts.Length - 1].X, baseY);
+        return sb.ToString();
+    }
+
+    private double GetLineChartLabelPosition(int index)
+    {
+        var pts = GetLineChartPoints();
+        if (index < 0 || index >= pts.Length) return 0;
+        return (pts[index].X / 480.0) * 100.0;
+    }
+
+    private int TotalMoodCount => moodBreakdown.Sum(m => m.Count);
+
+    private string TopMoodLabel =>
+        moodBreakdown.Count == 0 ? "No data" : GetMoodName(moodBreakdown[0].MoodId);
+
+    private string TopMoodPercentageText
+    {
+        get
+        {
+            if (TotalMoodCount == 0 || moodBreakdown.Count == 0) return "0%";
+            var top = moodBreakdown[0];
+            var pct = top.Count * 100.0 / TotalMoodCount;
+            return $"{Math.Round(pct):0}%";
+        }
+    }
+
+    private string GetMoodName(int moodId) =>
+        moodNames.TryGetValue(moodId, out var name) && !string.IsNullOrWhiteSpace(name)
+            ? name
+            : $"Mood {moodId}";
+
+    private string GetTagName(int tagId) =>
+        tagNames.TryGetValue(tagId, out var name) && !string.IsNullOrWhiteSpace(name)
+            ? name
+            : $"Tag {tagId}";
+
+    private string BuildPieBackgroundStyle()
+    {
+        if (moodBreakdown.Count == 0 || TotalMoodCount == 0) return string.Empty;
+        var segments = new List<string>();
+        double cumulative = 0;
+        for (var i = 0; i < moodBreakdown.Count; i++)
+        {
+            var item = moodBreakdown[i];
+            var pct = item.Count * 100.0 / TotalMoodCount;
+            var start = cumulative;
+            var end = cumulative + pct;
+            if (end > 100) end = 100;
+            var color = GetMoodColor(i);
+            segments.Add($"{color} {start:0.##}% {end:0.##}%");
+            cumulative = end;
+            if (cumulative >= 100) break;
+        }
+        return $"background: conic-gradient({string.Join(", ", segments)});";
+    }
+
+    private string GetMoodColor(int index)
+    {
+        var palette = new[] { "#0d9488", "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4" };
+        if (index < 0) index = 0;
+        if (index >= palette.Length) index = index % palette.Length;
+        return palette[index];
+    }
+
+    private static string FormatPercentage(double value) => $"{Math.Round(value):0}%";
+}

@@ -1,0 +1,229 @@
+﻿.pin-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+
+
+.pin-card {
+    background-color: var(--surface);
+    border-radius: 1.5rem;
+    padding: 3rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border-color);
+    width: 100%;
+    max-width: 450px;
+}
+
+html.dark .pin-card {
+    background-color: var(--card-dark);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    border-color: #374151;
+}
+
+.pin-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+    .pin-header h1 {
+        color: var(--primary);
+        font-size: 2rem;
+        font-weight: 900;
+        letter-spacing: -0.025em;
+        margin-bottom: 0.5rem;
+    }
+
+html.dark .pin-header h1 {
+    color: white;
+}
+
+.pin-header p {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+html.dark .pin-header p {
+    color: #9ca3af;
+}
+
+.pin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+    .form-group label {
+        color: var(--primary);
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+html.dark .form-group label {
+    color: #d1d5db;
+}
+
+.form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+}
+
+html.dark .form-input {
+    background-color: #1f2937;
+    border-color: #374151;
+    color: white;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(27, 55, 55, 0.1);
+}
+
+html.dark .form-input:focus {
+    border-color: #2dd4bf;
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.1);
+}
+
+.form-input::placeholder {
+    color: #9ca3af;
+}
+
+html.dark .form-input::placeholder {
+    color: #6b7280;
+}
+
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background-color: #fee2e2;
+    color: #dc2626;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #fca5a5;
+}
+
+html.dark .error-message {
+    background-color: rgba(220, 38, 38, 0.1);
+    color: #f87171;
+    border-color: rgba(220, 38, 38, 0.2);
+}
+
+.error-message .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.success-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    background-color: #d1fae5;
+    color: #16a34a;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid #86efac;
+}
+
+html.dark .success-message {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: #4ade80;
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+.success-message .material-symbols-outlined {
+    font-size: 1.25rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(27, 55, 55, 0.2), 0 2px 4px -1px rgba(27, 55, 55, 0.1);
+}
+
+html.dark .btn-primary {
+    background-color: #14b8a6;
+}
+
+.btn-primary:hover {
+    background-color: #527070;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(27, 55, 55, 0.2), 0 4px 6px -2px rgba(27, 55, 55, 0.1);
+}
+
+html.dark .btn-primary:hover {
+    background-color: #0d9488;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.login-link {
+    text-align: center;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+html.dark .login-link {
+    color: #9ca3af;
+}
+
+.link {
+    color: var(--primary);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+html.dark .link {
+    color: #2dd4bf;
+}
+
+.link:hover {
+    color: #527070;
+    text-decoration: underline;
+}
+
+html.dark .link:hover {
+    color: #5eead4;
+}

@@ -1,0 +1,123 @@
+@page "/change-pin"
+@layout EmptyLayout
+
+@using Coursework.Services
+@inject IUserService UserService
+@inject NavigationManager Navigation
+
+<div class="pin-container">
+    <div class="pin-card">
+        <div class="pin-header">
+            <h1>Change PIN</h1>
+            <p>Update your account PIN</p>
+        </div>
+
+        <div class="pin-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text"
+                       id="username"
+                       class="form-input"
+                       placeholder="Enter your username"
+                       maxlength="32"
+                       @bind="username"
+                       disabled="@isLoading" />
+            </div>
+
+
+
+            <div class="form-group">
+                <label for="newPin">New PIN (4 digits)</label>
+                <input type="password"
+                       id="newPin"
+                       class="form-input"
+                       placeholder="Enter new 4-digit PIN"
+                       maxlength="4"
+                       @bind="newPin"
+                       disabled="@isLoading" />
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPin">Confirm New PIN</label>
+                <input type="password"
+                       id="confirmPin"
+                       class="form-input"
+                       placeholder="Re-enter new PIN"
+                       maxlength="4"
+                       @bind="confirmPin"
+                       disabled="@isLoading" />
+            </div>
+
+
+
+            <button class="btn btn-primary" @onclick="ChangePinAsync" disabled="@isLoading">
+                Change PIN
+            </button>
+
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="error-message">
+                    <span class="material-symbols-outlined">error</span>
+                    @errorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="success-message">
+                    @successMessage
+                </div>
+            }
+
+            <div class="login-link">
+                <span>Back to</span>
+                <a href="/" class="link">Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string username = "";
+    private string newPin = "";
+    private string confirmPin = "";
+    private string errorMessage = "";
+    private string successMessage = "";
+    private bool isLoading = false;
+
+    private async Task ChangePinAsync()
+    {
+        errorMessage = "";
+        successMessage = "";
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(newPin) || string.IsNullOrWhiteSpace(confirmPin))
+        {
+            errorMessage = "All fields are required.";
+            return;
+        }
+        if (!System.Text.RegularExpressions.Regex.IsMatch(newPin, @"^\d{4}$"))
+        {
+            errorMessage = "PIN must be exactly 4 digits.";
+            return;
+        }
+        if (newPin != confirmPin)
+        {
+            errorMessage = "PINs do not match.";
+            return;
+        }
+        isLoading = true;
+        var result = await UserService.ChangePinAsync(username, newPin);
+        isLoading = false;
+        if (result)
+        {
+            successMessage = "PIN changed successfully. Redirecting to login...";
+            await Task.Delay(1200); // Optional: show message for 1.2 seconds
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            errorMessage = "Failed to change PIN. Check username.";
+        }
+    }
+}
+

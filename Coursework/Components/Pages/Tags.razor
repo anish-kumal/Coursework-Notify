@@ -1,0 +1,200 @@
+@page "/tags"
+@using MauiApp1.Models
+@using Coursework.Services
+@inject ITagService TagService
+
+<div class="tags-page">
+    <div class="tags-header">
+        <div class="tags-title">
+            <h1>Tags</h1>
+            <p>Manage your predefined and custom tags.</p>
+        </div>
+    </div>
+
+    <div class="tags-toolbar">
+        <input class="tag-input"
+               placeholder="Create a new tag..."
+               maxlength="32"
+               @bind="newTagName"
+               @bind:event="oninput" />
+
+        <button type="button" class="btn-primary" @onclick="CreateTagAsync">
+            <span class="material-symbols-outlined">add</span>
+            Add
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="message">@message</div>
+    }
+
+    <div class="tags-grid">
+        <div class="tags-card">
+            <div class="card-header">
+                <h3>Predefined</h3>
+                <span class="count">@predefinedTags.Count</span>
+            </div>
+
+            <div class="tags-list">
+                @if (predefinedTags.Count == 0)
+                {
+                    <p class="empty">No predefined tags.</p>
+                }
+                else
+                {
+                    @foreach (var tag in predefinedTags)
+                    {
+                        <span class="tag">#@tag.TagName</span>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="tags-card">
+            <div class="card-header">
+                <h3>Custom</h3>
+                <span class="count">@customTags.Count</span>
+            </div>
+
+            <div class="tags-list">
+                @if (customTags.Count == 0)
+                {
+                    <p class="empty">No custom tags yet.</p>
+                }
+                else
+                {
+                    @foreach (var tag in customTags)
+                    {
+                        <div class="tag-row">
+                            @if (editingTagId == tag.TagId)
+                            {
+                                <input class="tag-edit"
+                                       maxlength="32"
+                                       @bind="editingTagName"
+                                       @bind:event="oninput" />
+
+                                <button class="icon-btn" title="Save" @onclick="(() => SaveEditAsync(tag))">
+                                    <span class="material-symbols-outlined">check</span>
+                                </button>
+                                <button class="icon-btn" title="Cancel" @onclick="CancelEdit">
+                                    <span class="material-symbols-outlined">close</span>
+                                </button>
+                            }
+                            else
+                            {
+                                <span class="tag">#@tag.TagName</span>
+                                <div class="tag-actions">
+                                    <button class="icon-btn" title="Edit" @onclick="(() => StartEdit(tag))">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </button>
+                                    <button class="icon-btn danger" title="Delete" @onclick="(() => DeleteTagAsync(tag))">
+                                        <span class="material-symbols-outlined">delete</span>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string message = "";
+    private string newTagName = "";
+
+    private List<Tag> predefinedTags = new();
+    private List<Tag> customTags = new();
+
+    private int? editingTagId;
+    private string editingTagName = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var all = await TagService.GetAllTagsAsync();
+            predefinedTags = all.Where(t => t.IsPredefined).ToList();
+            customTags = all.Where(t => !t.IsPredefined).ToList();
+        }
+        catch (Exception ex)
+        {
+            message = $"Error: {ex.Message}";
+        }
+    }
+
+    private async Task CreateTagAsync()
+    {
+        var name = newTagName.Trim();
+        if (name.Length == 0) return;
+
+        message = "";
+        var created = await TagService.CreateTagAsync(name);
+        if (created == null)
+        {
+            message = "Tag already exists.";
+            return;
+        }
+
+        newTagName = "";
+        message = "Tag created.";
+        await LoadAsync();
+    }
+
+    private void StartEdit(Tag tag)
+    {
+        editingTagId = tag.TagId;
+        editingTagName = tag.TagName;
+        message = "";
+    }
+
+    private void CancelEdit()
+    {
+        editingTagId = null;
+        editingTagName = "";
+    }
+
+    private async Task SaveEditAsync(Tag tag)
+    {
+        var name = editingTagName.Trim();
+        if (name.Length == 0)
+        {
+            message = "Tag name can't be empty.";
+            return;
+        }
+
+        message = "";
+        var ok = await TagService.UpdateTagAsync(new Tag
+        {
+            TagId = tag.TagId,
+            TagName = name,
+            IsPredefined = false
+        });
+
+        if (!ok)
+        {
+            message = "Can't edit predefined tags.";
+            return;
+        }
+
+        CancelEdit();
+        message = "Tag updated.";
+        await LoadAsync();
+    }
+
+    private async Task DeleteTagAsync(Tag tag)
+    {
+        message = "";
+        var ok = await TagService.DeleteTagAsync(tag.TagId);
+        message = ok ? "Tag deleted." : "Can't delete predefined tags.";
+        await LoadAsync();
+    }
+}
+
